@@ -1,7 +1,7 @@
 <launch>
 
   <!-- <param name="/use_sim_time" value="true" /> -->
-  <arg name="load_gripper" default="true" />
+  <arg name="load_gripper" default="false" />
 
 
   <node name="joint_state_desired_publisher" pkg="topic_tools" type="relay" args="joint_states joint_states_desired" />
