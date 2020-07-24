@@ -12,7 +12,7 @@ import geometry_msgs.msg
 from math import pi
 from std_msgs.msg import String, Bool
 from moveit_commander.conversions import pose_to_list
-from franka_control.msg import ErrorRecoveryAction, ErrorRecoveryActionGoal
+# from franka_control.msg import ErrorRecoveryAction, ErrorRecoveryActionGoal
 import pickle
 
 from transforms import quaternion_matrix, quaternion_from_matrix, euler_to_quaternion, quaternion_to_euler
@@ -55,9 +55,9 @@ class plantRecord(object):
     group_name = "panda_arm"
     group = moveit_commander.MoveGroupCommander(group_name)
 
-    self.error_recovery_pub = rospy.Publisher('/franka_control/error_recovery/goal', 
-                                                   ErrorRecoveryActionGoal, 
-                                                  queue_size=1)
+    # self.error_recovery_pub = rospy.Publisher('/franka_control/error_recovery/goal', 
+    #                                                ErrorRecoveryActionGoal, 
+    #                                               queue_size=1)
 
     self.start_recording_pub = rospy.Publisher("/record", Bool, queue_size=1)
 
@@ -83,7 +83,7 @@ class plantRecord(object):
     self.group = group
     self.planning_frame = planning_frame
 
-    self.outfolder = "/home/franka/proba/"
+    self.outfolder = "/home/ana/proba/"
 
   def execute_plan(self, plan):
     group = self.group
@@ -118,7 +118,7 @@ class plantRecord(object):
 
   def loops(self, plantId):
 
-    err_rec_msg = ErrorRecoveryActionGoal()
+    # err_rec_msg = ErrorRecoveryActionGoal()
     msg_true = Bool()
     msg_true.data = True
 
@@ -127,7 +127,7 @@ class plantRecord(object):
     pose = self.pose_start
     success_u = self.plan_to_pose(pose.position, pose.orientation)
     while (success_u == False):
-        self.error_recovery_pub.publish(err_rec_msg)
+        # self.error_recovery_pub.publish(err_rec_msg)
         time.sleep(0.2)
         success_u = self.plan_to_pose(pose.position, pose.orientation)
 
@@ -136,7 +136,7 @@ class plantRecord(object):
         success_u = self.plan_to_pose(pose.position, pose.orientation)
         print("Touch id " + str(self.touch_id) + " success: " + str(success_u))
         while (success_u == False):
-            self.error_recovery_pub.publish(err_rec_msg)
+            # self.error_recovery_pub.publish(err_rec_msg)
             time.sleep(0.2)
             success_u = self.plan_to_pose(pose.position, pose.orientation)
             time.sleep(0.4)
@@ -160,7 +160,7 @@ class plantRecord(object):
             f.write("z: " + str(pose.orientation.z) + "\n")
             f.write("w: " + str(pose.orientation.w) + "\n")
 
-            
+
 def main():
 
   try:
@@ -238,7 +238,6 @@ def main():
   print("============ Python experiment demo complete!")
 
   return
-
 
 
 if __name__ == '__main__':
