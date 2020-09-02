@@ -14,7 +14,8 @@ import time
 from cv_bridge import CvBridge, CvBridgeError
 import cv2
 import matplotlib.pyplot as plt
-import pcl
+import os
+# import pcl
 
 
 class plantRecord():
@@ -40,6 +41,7 @@ class plantRecord():
         self.touch_id = None
         self.xyz = None
 
+        self.folderpath = "/home/franka/plantRecord/"
 
 
     def callback_organised(self, ros_point_cloud):
@@ -103,9 +105,22 @@ if __name__ == '__main__':
 
     rate = rospy.Rate(50)
 
-    depthpath = "/home/marsela/plantFolder/depth_"
-    colorpath = "/home/marsela/plantFolder/color_"
-    pcpath = "/home/marsela/plantFolder/pc_"
+    depthpath = bagRecord.folderpath + "depth/depth_"
+    colorpath = bagRecord.folderpath + "color/color_"
+    pcpath = bagRecord.folderpath + "pc/pc_"
+
+    p = bagRecord.folderpath
+
+    p1 = p + "depth/"
+    if not os.path.exists(p1):
+        os.makedirs(p1)
+    p1 = p + "color/"
+    if not os.path.exists(p1):
+        os.makedirs(p1)
+    p1 = p + "pc/"
+    if not os.path.exists(p1):
+        os.makedirs(p1)
+
 
     while not rospy.is_shutdown():
         if (bagRecord.record == True) and (bagRecord.touch_id is not None):

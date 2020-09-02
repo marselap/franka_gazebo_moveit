@@ -14,6 +14,7 @@ from std_msgs.msg import String, Bool
 from moveit_commander.conversions import pose_to_list
 from franka_control.msg import ErrorRecoveryAction, ErrorRecoveryActionGoal
 import pickle
+import os
 
 from transforms import quaternion_matrix, quaternion_from_matrix, euler_to_quaternion, quaternion_to_euler
 
@@ -83,7 +84,10 @@ class plantRecord(object):
     self.group = group
     self.planning_frame = planning_frame
 
-    self.outfolder = "/home/franka/proba/"
+    self.outfolder = "/home/franka/plantRecord/poses/"
+
+    if not os.path.exists(self.outfolder):
+        os.makedirs(self.outfolder)
 
   def execute_plan(self, plan):
     group = self.group
@@ -141,8 +145,9 @@ class plantRecord(object):
             success_u = self.plan_to_pose(pose.position, pose.orientation)
             time.sleep(0.4)
 
+        time.sleep(0.5)  
         msg_touchid = String()
-        msg_touchid.data = str(100*plantId + self.touch_id)
+        msg_touchid.data = str(1000*plantId + self.touch_id)
         self.touch_id_pub.publish(msg_touchid)
         self.start_recording_pub.publish(msg_true)                
         time.sleep(0.3)  
@@ -167,7 +172,7 @@ def main():
     
     experiment = plantRecord()
 
-    experiment.group.set_max_velocity_scaling_factor(0.5)
+    experiment.group.set_max_velocity_scaling_factor(0.1)
 
     roll = 180
     pitch = 0
@@ -185,14 +190,25 @@ def main():
     pose_start.position.y = 0.0
     pose_start.position.z = 0.8
 
-    plan, fraction = experiment.group.compute_cartesian_path([pose_start],   # waypoints to follow
-                                       0.01,        # eef_step
-                                       0.0)
-    print("fraction:")
-    print(fraction)
-    execute = raw_input("execute?")
-    if (execute == 'y') or (execute == 'Y'):
-        experiment.execute_plan(plan)
+    success = False
+    i = 0
+    while (success == False) and (i < 5):
+        plan, fraction = experiment.group.compute_cartesian_path([pose_start],   # waypoints to follow
+                                           0.01,        # eef_step
+                                           0.0)
+        print("fraction:")
+        print(fraction)
+        execute = raw_input("execute?")
+        if (execute == 'y') or (execute == 'Y'):
+            success = experiment.execute_plan(plan)
+        elif (execute == 'n'):
+            return
+        i = i + 1
+
+    if i == 5:
+        return
+
+
 
     experiment.pose_start = experiment.group.get_current_pose().pose
 
@@ -213,6 +229,19 @@ def main():
             print("Done recording. Recorded " + str(len(pose_list)) + " poses.")
             break
 
+    print("Open safety switch.")
+
+    while True:
+        execute = raw_input("Ready? [y/n]")
+        if (execute == 'y') or (execute == 'Y'):
+            err_rec_msg = ErrorRecoveryActionGoal()
+            experiment.error_recovery_pub.publish(err_rec_msg)
+            break
+        else:
+            print("retrying... when safety switch opened, type y")            
+
+
+    
     experiment.pose_list = pose_list
 
     i_plant = 0
